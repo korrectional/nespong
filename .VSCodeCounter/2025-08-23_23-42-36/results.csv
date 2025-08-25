@@ -1,0 +1,4 @@
+"filename", "language", "ASM (Hack)", "Batch", "comment", "blank", "total"
+"c:\Users\satar\OneDrive\Ambiente de Trabalho\6502\HelloNES\hello.asm", "ASM (Hack)", 125, 0, 0, 44, 169
+"c:\Users\satar\OneDrive\Ambiente de Trabalho\6502\HelloNES\run.bat", "Batch", 0, 2, 0, 0, 2
+"Total", "-", 125, 2, 0, 44, 171
