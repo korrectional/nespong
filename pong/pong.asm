@@ -171,14 +171,14 @@ NoFlip1:
     STA direction
 NoFlip2:
     LDA $0203
-    CMP #$e0
+    CMP #$ec
     BCC NoFlip3 ;if coords is less than #$e0
     LDA direction
     AND #$f0
     STA direction
 NoFlip3:
     LDA $0203
-    CMP #$04
+    CMP #$03
     BCS NoFlip4 ;if coords is more than #$04
     LDA direction
     ORA #$0f
@@ -188,15 +188,74 @@ NoFlip4:
 
 ;;;;;; input
     JSR CollectInput
+    LDA buttons
+    AND #$01
+    BNE RightPressed
+    LDA buttons
+    AND #$02
+    BNE LeftPressed
+    ;AND #$04
+    ;BNE DnPressed
+    ;AND #$08
+    ;BNE UpPressed
+    JMP DoneMove
+RightPressed:
+    LDX #$00; before anything we set X as 0
+RightPressedLoop:
+    LDA $0213, X ; adress of block
+    CLC
+    ADC #$02
+    STA $0213, X
+    INX
+    INX
+    INX
+    INX
+    CPX #$10
+    BNE RightPressedLoop
+    JMP DoneMove
+    LDX #$00; before anything we set X as 0
+LeftPressed:
+    LDA $0213, X ; adress of block
+    SEC
+    SBC #$02
+    STA $0213, X
+    INX
+    INX
+    INX
+    INX
+    CPX #$10
+    BNE LeftPressed
+DoneMove:
 
-
-
-
-
+Collision:
+CollisionYEval:
+    LDA #$D0
+    SEC
+    SBC #$10
+    CMP $0200
+    BCS NoHit
+    
+CollisionXEval:
+    LDA $0213
+    CMP $0207
+    BCS NoHit
+    
+    LDA $021f
+    CMP $0207
+    BCC NoHit
+CollisionPositive:
+    LDA direction
+    ORA #$f0
+    STA direction
+NoHit:
 
 
     RTI
 ; NMI DONE
+
+
+
+
 
 
     .bank 1
