@@ -5,7 +5,9 @@
 
     .rsset $0000
 direction .rs 1 ; 0 0 (f 0 is top left, f f is top right, 0 f is bottom right)
-
+speedx    .rs 1 ; speed x
+speedy    .rs 1 ; speed y
+buttons   .rs 1 ; currently pressed buttons
 
     .bank 0
     .ORG $C000
@@ -45,15 +47,19 @@ LoadPalleteLoop:
 ; load the sprites in the center
     LDX #$00
 LoadSpritesLoop:
-    LDA sprites, X
+    LDA marioSprites, X ; also loading brickSprites (happens to be right after mario)
     STA $0200, X ; here shall stay the sprites
     INX
-    CPX #$10 ; 16
+    CPX #$20 ; 32  16 Mario + 16 brick
     BNE LoadSpritesLoop
 
 StartCode:
     LDA #$0f ; set direction as down right
     STA direction
+    LDA #$02
+    STA speedx
+    LDA #$03
+    STA speedy
 
 
 
@@ -72,6 +78,19 @@ IncXBy4:
     INX
     RTS
 
+CollectInput:
+    LDA #$01
+    STA $4016
+    LDA #$00
+    STA $4016 ; now controller gives current button bit
+    LDX #$8
+CollectInputLoop:
+    LDA $4016
+    LSR A
+    ROL buttons
+    DEX
+    BNE CollectInputLoop
+    RTS
 
 
 
@@ -95,7 +114,7 @@ DrawMario1: ; if direction is f0 then do up code else down
 MarioDn:
     LDA $0200, X
     CLC
-    ADC #$02
+    ADC speedy
     STA $0200, X
     JSR IncXBy4
     CPX #$10
@@ -104,7 +123,7 @@ MarioDn:
 MarioUp:
     LDA $0200, X
     SEC
-    SBC #$02
+    SBC speedy
     STA $0200, X
     JSR IncXBy4
     CPX #$10
@@ -120,7 +139,7 @@ DrawMario2:
 MarioLe:
     LDA $0203, X
     CLC
-    ADC #$01
+    ADC speedx
     STA $0203, X
     JSR IncXBy4
     CPX #$10
@@ -129,7 +148,7 @@ MarioLe:
 MarioRi:
     LDA $0203, X
     SEC
-    SBC #$01
+    SBC speedx
     STA $0203, X
     JSR IncXBy4
     CPX #$10
@@ -167,6 +186,15 @@ NoFlip3:
 NoFlip4:
 
 
+;;;;;; input
+    JSR CollectInput
+
+
+
+
+
+
+
     RTI
 ; NMI DONE
 
@@ -175,14 +203,20 @@ NoFlip4:
     .ORG $E000
 pallete:
     .DB $0F,$31,$32,$33,$0F,$35,$36,$37,$0F,$39,$3A,$3B,$0F,$3D,$3E,$0F ;background
-	.DB $0F,$16,$36,$0F,$0F,$0F,$30,$16,$0F,$1C,$15,$14,$0F,$02,$38,$3C ;foregrounds
-sprites:
+	.DB $0F,$16,$36,$30,$0F,$0F,$30,$16,$0F,$1C,$15,$14,$0F,$02,$38,$3C ;foregrounds
+marioSprites:
 	; 80, 0, 0, 80 (y pos, tile number, color pallete no flipping etc, x pos)
-	.DB $81, $32, $00, $61
+    .DB $81, $32, $00, $61
 	.DB $81, $33, $00, $69
 	.DB $89, $34, $00, $61
 	.DB $89, $35, $00, $69
 
+brickSprites:
+    .DB $d0, $86, $00, $80
+    .DB $d0, $86, $00, $88
+    .DB $d0, $86, $00, $90
+    .DB $d0, $86, $00, $98
+        
 
     .ORG $FFFA
     .DW NMI
